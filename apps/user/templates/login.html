@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Connexion - AYOMI{% endblock page_title %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Authentification</div>
+
+                    <div class="card-body">
+
+                        {% if messages %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-danger" role="alert">
+                                    {% for message in messages %}
+                                    <span class="error">{{ message }}</span><br>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <form action="{% url 'login' %}" method="post" class="form">
+                            {% csrf_token %}
+                            
+                            <div class="row mt-2">
+                                <div class="col-md-4">
+                                    <label for="username">Identifiant</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input name="username" id="username" type="text" class="form-control" autofocus />
+                                </div>
+                            </div>
+
+                            <div class="row mt-2">
+                                <div class="col-md-4">
+                                    <label for="password">Mot de passe</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input name="password" id="password" type="password" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="row mt-2">
+                                <div class="col-md-8 offset-md-4">
+                                    <input name="valider" type="submit" value="Se connecter" class="form-control btn btn-primary" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

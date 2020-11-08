@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Profil utilisateur - AYOMI{% endblock page_title %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col col-auto">
+                <h3>Mon profil</h3>
+            </div>
+            <div class="col">
+                <div class="float-right ">
+                    <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#editDataModal">Modifier</button>
+                </div>
+            </div>
+        </div>
+
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td class="w-50 font-weight-bold">Identifiant</td>
+                    <td class="w-50">{{ request.user.username }}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Prénom</td>
+                    <td>{{ request.user.first_name }}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Nom</td>
+                    <td>{{ request.user.last_name }}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Email</td>
+                    <td id="email-in-table">{{request.user.email}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Modal -->
+        <div class="modal fade" id="editDataModal" tabindex="-1" role="dialog" aria-labelledby="editDataUser" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editDataUser">Modifier les informations</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="update_form" onsubmit="return false;">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" placeholder="Nouvel email" />
+                    </div>
+
+                    {% csrf_token %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">Modifier</button>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+
+<script>
+    $('#editDataModal').on('hidden.bs.modal', function (e) {
+        $("#email").val('');
+    });
+
+    let validateEmail = (email) => {
+        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+
+    let submitForm = () => {
+        let email_value = $("#email").val();
+
+        $("#update_form .form-group .invalid-feedback").remove();
+        $("#email").removeClass("is-invalid");
+
+        if( validateEmail(email_value) ) {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'update_user' %}",
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                data: {email: email_value},
+                success: (data) => {
+                    $("#navbarDropdown").text(data.email);
+                    $("#email-in-table").text(data.email);
+                    
+                    $('#editDataModal').modal('hide');
+
+                    $("#flash").append(`<div class="col-md-12"><div class="alert alert-success alert-dismissible fade show" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>Votre email a été modifié avec succès !</div></div>`);
+                    setInterval(() => $('#flash .alert').alert('close'), 5000);
+                },
+                error: (data) => {
+                    $('#editDataModal').modal('hide');
+
+                    $("#flash").append(`<div class="col-md-12"><div class="alert alert-warning alert-dismissible fade show" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>${data.responseJSON.error_message}</div></div>`);
+                    setInterval(() => $('#flash .alert').alert('close'), 8000);
+                },
+                dataType: "json"
+            });
+        }
+        else {
+            $("#update_form .form-group").append("<div class='invalid-feedback'>Veuillez saisir un email valide.</div>");
+            $("#email").addClass("is-invalid");
+        }
+    }
+
+    
+</script>
+{% endblock javascript %}
